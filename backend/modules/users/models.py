@@ -5,6 +5,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from backend.core.database import Base
 
+# Model de usuário
+
 def utc_now()->datetime:
     return datetime.now(timezone.utc)
 

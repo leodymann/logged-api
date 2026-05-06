@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "5439:5439"
+      - "5439:5432"
     volumes:
       - logged_postgres_data:/var/lib/postgresql/data
 

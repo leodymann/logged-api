@@ -6,6 +6,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from backend.core.database import Base
 
+# Models de código de Login e eventos de autenticação
+
 def utc_now()->datetime:
     return datetime.now(timezone.utc)
 
@@ -15,8 +17,8 @@ class LoginCode(Base):
     phone: Mapped[str]=mapped_column(String(20), index=True, nullable=False,)
     code_hash: Mapped[str]=mapped_column(String(255), nullable=False,)
     expires_at: Mapped[datetime]=mapped_column(DateTime(timezone=True), nullable=False,)
-    used_at: Mapped[datetime]=mapped_column(DateTime(timezone=True), nullable=False,)
-    attemps: Mapped[int]=mapped_column(Integer, default=0, nullable=False,)
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    attempts: Mapped[int]=mapped_column(Integer, default=0, nullable=False,)
     created_at: Mapped[datetime]=mapped_column(DateTime(timezone=True), default=utc_now, nullable=False,)
 
 class AuthEvent(Base):
