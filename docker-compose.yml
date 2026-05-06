@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: logged_postgres
+    environment:
+      POSTGRES_DB: logged
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5439:5439"
+    volumes:
+      - logged_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  logged_postgres_data:
