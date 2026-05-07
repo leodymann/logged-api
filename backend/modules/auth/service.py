@@ -4,17 +4,12 @@ from sqlalchemy.orm import Session
 
 from backend.core.security import create_access_token
 from backend.modules.auth.repository import AuthEventRepository, LoginCodeRepository
-from backend.modules.auth.utils import (
-    generate_login_code,
-    hash_code,
-    normalize_phone_br,
-    verify_code_hash,
-)
+from backend.modules.auth.utils import (generate_login_code, hash_code, normalize_phone_br, verify_code_hash, )
 from backend.modules.users.models import User
 from backend.modules.users.repository import UserRepository
-from backend.modules.integrations.whatsapp.client import WhatsAppClient
+from backend.modules.integrations.whatsapp.client import WhatsAppClient, WhatsAppSendError
 
-
+# Services de auutenticação + Builds whatsapp
 class AuthService:
     CODE_EXPIRATION_MINUTES = 5
     MAX_CODE_ATTEMPTS = 5
@@ -57,11 +52,10 @@ class AuthService:
         )
 
         message = (
-            f"🔐 Seu código de acesso é: {code}\n\n"
-            f"Ele expira em {self.CODE_EXPIRATION_MINUTES} minutos.\n\n"
-            "Se você não solicitou este acesso, ignore esta mensagem."
+            f"your access code is: {code}\n\n"
+            f"expires in {self.CODE_EXPIRATION_MINUTES} minutes.\n\n"
+            "yf you did not request this access, ignore this message."
         )
-
         try:
             self.whatsapp.send_text(
                 to=phone,
@@ -77,7 +71,7 @@ class AuthService:
 
             self.db.commit()
 
-        except Exception:
+        except WhatsAppSendError:
             self.auth_events.create(
                 event_type="CODE_SEND_FAILED",
                 phone=phone,
@@ -108,7 +102,7 @@ class AuthService:
                 user_agent=user_agent,
             )
             self.db.commit()
-            raise ValueError("Código inválido ou expirado.")
+            raise ValueError("code invalid or expired.")
 
         if login_code.expires_at < now:
             login_code.used_at = now
@@ -120,7 +114,7 @@ class AuthService:
                 user_agent=user_agent,
             )
             self.db.commit()
-            raise ValueError("Código expirado. Solicite um novo código.")
+            raise ValueError("code expired, request a new code.")
 
         if login_code.attempts >= self.MAX_CODE_ATTEMPTS:
             login_code.used_at = now
@@ -132,7 +126,7 @@ class AuthService:
                 user_agent=user_agent,
             )
             self.db.commit()
-            raise ValueError("Muitas tentativas. Solicite um novo código.")
+            raise ValueError("too many attempts, request a new code.")
 
         login_code.attempts += 1
 
@@ -144,7 +138,7 @@ class AuthService:
                 user_agent=user_agent,
             )
             self.db.commit()
-            raise ValueError("Código inválido.")
+            raise ValueError("invalid code.")
 
         login_code.used_at = now
 
@@ -170,6 +164,36 @@ class AuthService:
             ip_address=ip_address,
             user_agent=user_agent,
         )
+
+        login_message = (
+            "new login successful on your account.\n\n"
+            f"phone: {phone}\n"
+            f"IP: {ip_address or 'unidentified'}\n\n"
+            "if it was you, no further action is necessary.\n"
+        )
+
+        try:
+            self.whatsapp.send_text(
+                to=phone,
+                message=login_message,
+            )
+
+            self.auth_events.create(
+                event_type="LOGIN_NOTIFICATION_SENT",
+                phone=phone,
+                user_id=user.id,
+                ip_address=ip_address,
+                user_agent=user_agent,
+            )
+
+        except Exception:
+            self.auth_events.create(
+                event_type="LOGIN_NOTIFICATION_FAILED",
+                phone=phone,
+                user_id=user.id,
+                ip_address=ip_address,
+                user_agent=user_agent,
+            )
 
         self.db.commit()
 

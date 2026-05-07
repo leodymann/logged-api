@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from backend.modules.auth.models import AuthEvent, LoginCode
 
+# Querys de login e autenticação
 class LoginCodeRepository:
     def __init__(self, db: Session):
         self.db=db
@@ -20,7 +21,6 @@ class LoginCodeRepository:
         active_codes=self.get_active_by_phone(phone)
         for code in active_codes:
             code.used_at = used_at
-
 class AuthEventRepository:
     def __init__(self, db: Session):
         self.db=db

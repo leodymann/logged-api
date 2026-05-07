@@ -1,6 +1,7 @@
 from functools import lru_cache # decorador que armazena em cache os resultados de uma função.
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# Configs da env
 class Settings(BaseSettings):
     APP_NAME: str = "Logged"
     ENVIRONMENT: str = "development"

@@ -2,20 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from backend.core.database import get_db
-from backend.modules.auth.schemas import (
-    RequestCodeIn,
-    RequestCodeOut,
-    TokenOut,
-    VerifyCodeIn,
-)
+from backend.modules.auth.schemas import (RequestCodeIn, RequestCodeOut, TokenOut, VerifyCodeIn, )
 from backend.modules.auth.service import AuthService
+from backend.modules.integrations.whatsapp.client import WhatsAppSendError
 
-router = APIRouter(
-    prefix="/auth",
-    tags=["Auth"],
-)
-
-
+# Rotas de autenticação/verificação
+router = APIRouter(prefix="/auth", tags=["Auth"],)
 @router.post("/request-code", response_model=RequestCodeOut)
 def request_code(payload:RequestCodeIn, request:Request, db:Session=Depends(get_db),):
     
@@ -37,10 +29,10 @@ def request_code(payload:RequestCodeIn, request:Request, db:Session=Depends(get_
             detail=str(error),
         )
 
-    except Exception:
+    except WhatsAppSendError as error:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="we were unable to send the code via WhatsApp.",
+            detail=str(error),
         )
 @router.post("/verify-code", response_model=TokenOut)
 def verify_code(

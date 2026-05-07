@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from backend.modules.users.models import User
 
+# Querys de usuário
 class UserRepository:
     def __init__(self, db: Session):
         self.db = db

@@ -7,7 +7,7 @@ from backend.modules.auth.routes import router as auth_router
 
 app=FastAPI(
     title=settings.APP_NAME,
-    description="Logged, seguro e rápido",
+    description="Logged, API.",
     version="1.0.0",
     debug=settings.DEBUG,
 )

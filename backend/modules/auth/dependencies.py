@@ -9,7 +9,7 @@ from backend.modules.users.models import User
 from backend.modules.users.repository import UserRepository
 
 bearer_scheme=HTTPBearer()
-
+# Validar token e retornar usuário
 def get_current_user(credentials:HTTPAuthorizationCredentials=Depends(bearer_scheme),db:Session=Depends(get_db),)->User:
     token=credentials.credentials
     try:
