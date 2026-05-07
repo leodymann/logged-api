@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     APP_NAME: str = "Logged"
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
+    LOG_LEVEL: str = "INFO"
 
     DATABASE_URL: str = ""
     JWT_SECRET_KEY: str = ""
